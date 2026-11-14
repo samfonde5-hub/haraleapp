@@ -4,7 +4,8 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const ALLOWED = ['https://chinmay-app.pages.dev', 'http://localhost:5173', 'http://localhost:4173']
-const MODELS = [Deno.env.get('GEMINI_MODEL'), 'gemini-2.5-flash', 'gemini-flash-latest'].filter(Boolean) as string[]
+// gemini-2.5-* ab naye users ke liye band hai (404). 3.5-flash-lite: ~1s, sasta, Marathi theek.
+const MODELS = [Deno.env.get('GEMINI_MODEL'), 'gemini-3.5-flash-lite'].filter(Boolean) as string[]
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 function cors(origin: string | null) {
@@ -30,7 +31,7 @@ async function gemini(prompt: string) {
   if (!key) throw new Error('GEMINI_API_KEY missing')
   let last = ''
   for (const model of MODELS) {
-    const thinking = /2\.5/.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {}
+    const thinking = /flash-lite/.test(model) ? { thinkingConfig: { thinkingLevel: 'minimal' } } : {}
     try {
       const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': key },

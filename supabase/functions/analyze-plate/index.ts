@@ -4,7 +4,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const ALLOWED = ['https://chinmay-app.pages.dev', 'http://localhost:5173', 'http://localhost:4173']
 const TAGS = ['balanced', 'rice_extra', 'low_veg', 'fried', 'sweet', 'unclear'] as const
-const MODELS = [Deno.env.get('GEMINI_MODEL'), 'gemini-2.5-flash', 'gemini-flash-latest'].filter(Boolean) as string[]
+// gemini-2.5-* ab naye users ke liye band hai (404). 3.5-flash-lite: ~1s, sasta, Marathi theek.
+const MODELS = [Deno.env.get('GEMINI_MODEL'), 'gemini-3.5-flash-lite'].filter(Boolean) as string[]
 
 function cors(origin: string | null) {
   const ok = origin && (ALLOWED.includes(origin) || origin.endsWith('.chinmay-app.pages.dev'))
@@ -47,8 +48,7 @@ async function gemini(b64: string, mime: string) {
   if (!key) throw new Error('GEMINI_API_KEY missing')
   let lastErr = ''
   for (const model of MODELS) {
-    // Simple tagging ke liye "thinking" ki zaroorat nahi — band karo, jawab 2–4 sec me aata hai
-    const thinking = /2\.5/.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {}
+    const thinking = /flash-lite/.test(model) ? { thinkingConfig: { thinkingLevel: 'minimal' } } : {}
     let r: Response
     try {
       r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
