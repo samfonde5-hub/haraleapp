@@ -1,97 +1,55 @@
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Card } from '../components/Visual'
-import { Skeleton, useToast } from '../components/Toast'
-import { addPatient, type useDoctorPatients } from '../lib/doctor'
-import { todayIST } from '../lib/dates'
-import { haptic } from '../lib/feel'
+import { Skeleton } from '../components/Toast'
+import { useDoctorPatients } from '../lib/doctor'
+import PatientForm from './PatientForm'
+import { Av, Dc, Empty, PageHead, useL } from './ui'
 
-type Data = ReturnType<typeof useDoctorPatients>
-const CONDS = ['diabetes', 'thyroid', 'pcod', 'bp', 'pregnancy', 'other'] as const
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+const STATUS: Record<string, [string, string, string]> = { active: ['Active', 'सक्रिय', 't-em'], paused: ['Paused', 'थांबवलं', 't-amb'], completed: ['Completed', 'पूर्ण', 't-gr'], dropped: ['Dropped', 'सोडलं', 't-red'] }
 
-function AddSheet({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
-  const { t } = useTranslation('d')
-  const toast = useToast()
-  const [f, setF] = useState({ name: '', email: '', phone: '', sw: '', tw: '', date: todayIST() })
-  const [conds, setConds] = useState<string[]>([])
-  const [busy, setBusy] = useState(false)
-  const [err, setErr] = useState('')
-  const num = (v: string) => { const n = parseFloat(v); return Number.isFinite(n) && n >= 20 && n <= 300 ? n : null }
-  async function save() {
-    const email = f.email.trim().toLowerCase()
-    if (!f.name.trim() || !EMAIL_RE.test(email)) return setErr(t('form.bad'))
-    setBusy(true); setErr('')
-    const phone = f.phone.replace(/[^\d+]/g, '')
-    const { error } = await addPatient({ full_name: f.name.trim().slice(0, 120), invite_email: email, phone: phone.length >= 10 ? phone : null, start_weight: num(f.sw), target_weight: num(f.tw), start_date: f.date || null, conditions: conds })
-    setBusy(false)
-    if (error) return setErr(error.code === '23505' ? t('form.dup') : t('fail'))
-    haptic(20); toast(t('form.saved')); onDone(); onClose()
-  }
-  const inp = 'mt-1 min-h-12 w-full rounded-xl border-2 border-ink/10 bg-white px-3 text-lg outline-none focus:border-emerald'
-  return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center" role="dialog" aria-modal="true">
-      <div className="fade-in absolute inset-0 bg-ink/50" onClick={onClose} />
-      <div className="sheet relative max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-[2rem] bg-paper p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl">
-        <span className="mx-auto mb-4 block h-1.5 w-12 rounded-full bg-ink/15" />
-        <h2 className="font-display text-2xl font-bold">{t('form.title')}</h2>
-        <label className="mt-3 block text-sm font-semibold">{t('form.name')}<input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} className={inp} /></label>
-        <label className="mt-3 block text-sm font-semibold">{t('form.email')}<input type="email" inputMode="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} className={inp} placeholder="name@gmail.com" /></label>
-        <label className="mt-3 block text-sm font-semibold">{t('form.phone')}<input inputMode="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} className={inp} placeholder="+91…" /></label>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <label className="text-sm font-semibold">{t('form.start_w')}<input inputMode="decimal" value={f.sw} onChange={(e) => setF({ ...f, sw: e.target.value })} className={inp} /></label>
-          <label className="text-sm font-semibold">{t('form.target_w')}<input inputMode="decimal" value={f.tw} onChange={(e) => setF({ ...f, tw: e.target.value })} className={inp} /></label>
-        </div>
-        <label className="mt-3 block text-sm font-semibold">{t('form.start_date')}<input type="date" value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} className={inp} /></label>
-        <p className="mt-3 text-sm font-semibold">{t('form.conditions')}</p>
-        <div className="mt-1 flex flex-wrap gap-2">{CONDS.map((c) => {
-          const on = conds.includes(c)
-          return <button key={c} onClick={() => setConds(on ? conds.filter((x) => x !== c) : [...conds, c])} aria-pressed={on}
-            className={`rounded-full px-3 text-sm font-semibold ${on ? 'bg-coral text-white' : 'bg-white text-ink'}`} style={{ minHeight: 40 }}>{t(`form.cond.${c}`)}</button>
-        })}</div>
-        {err && <p role="alert" className="mt-3 rounded-xl bg-coral/10 p-2 text-center font-semibold text-coral">{err}</p>}
-        <button onClick={save} disabled={busy} className="mt-4 min-h-14 w-full rounded-2xl bg-emerald text-lg font-bold text-white shadow-lg shadow-emerald/30 disabled:opacity-60">
-          {busy ? <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white align-middle" /> : t('form.save')}
-        </button>
-        <button onClick={onClose} className="mt-1 w-full text-ink/60">✕</button>
-      </div>
-    </div>
-  )
-}
-
-export default function DPatients({ q, openPatient }: { q: Data; openPatient: (id: string) => void }) {
-  const { t } = useTranslation('d')
+export default function DPatients({ go }: { go: (h: string) => void }) {
+  const L = useL()
+  const q = useDoctorPatients()
   const [s, setS] = useState('')
+  const [st, setSt] = useState<string>('active')
   const [adding, setAdding] = useState(false)
-  const list = (q.data ?? []).filter((p) => p.full_name.toLowerCase().includes(s.trim().toLowerCase()))
+  if (!q.data) return <div className="flex flex-col gap-4"><Skeleton className="h-16" /><Skeleton className="h-96" /></div>
+  const list = q.data.filter((p) => (st === 'all' || p.status === st) && (!s.trim() || p.full_name.toLowerCase().includes(s.toLowerCase()) || (p.phone ?? '').includes(s) || (p.invite_email ?? '').includes(s.toLowerCase())))
   return (
-    <div className="flex flex-col gap-3">
-      <div className="rise flex gap-2">
-        <input value={s} onChange={(e) => setS(e.target.value)} placeholder={t('patients.search')} className="min-h-12 min-w-0 flex-1 rounded-2xl border-2 border-ink/10 bg-white px-4 text-lg outline-none focus:border-emerald" />
-        <button onClick={() => setAdding(true)} className="shrink-0 rounded-2xl bg-coral px-4 font-bold text-white shadow-md shadow-coral/30">{t('patients.add')}</button>
+    <div className="flex flex-col gap-4">
+      <PageHead title={L('Patients', 'पेशंट्स')} sub={L(`${q.data.filter((p) => p.status === 'active').length} active · ${q.data.length} total`, `${q.data.filter((p) => p.status === 'active').length} सक्रिय · एकूण ${q.data.length}`)}
+        right={<><input className="dfield w-56!" placeholder={L('Search name, phone, email…', 'नाव, फोन, ईमेल शोधा…')} value={s} onChange={(e) => setS(e.target.value)} />
+          <button onClick={() => setAdding(true)} className="dbtn p">+ {L('New patient', 'नवीन पेशंट')}</button></>} />
+      <div className="rise flex flex-wrap gap-2">
+        {(['active', 'paused', 'completed', 'dropped', 'all'] as const).map((k) => (
+          <button key={k} onClick={() => setSt(k)} className={`tag ${k === 'all' ? 't-gr' : STATUS[k][2]} ${st === k ? 'ring-2 ring-ink/25' : ''}`} style={{ minHeight: 30 }}>
+            {k === 'all' ? L('All', 'सर्व') : L(STATUS[k][0], STATUS[k][1])} · {k === 'all' ? q.data!.length : q.data!.filter((p) => p.status === k).length}
+          </button>
+        ))}
       </div>
-      {q.loading && !q.data ? <Skeleton className="h-40" /> : list.length === 0 ? <Card><p className="text-ink/60">{t('patients.empty')}</p></Card> : (
-        <ul className="flex flex-col gap-2">{list.map((p, i) => {
-          const diff = p.start_weight && p.last_weight ? +(Number(p.last_weight) - Number(p.start_weight)).toFixed(1) : null
-          return (
-            <li key={p.id} className="rise" style={{ '--i': Math.min(i, 8) } as React.CSSProperties}>
-              <button onClick={() => openPatient(p.id)} className="lift flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left shadow-sm">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-mint font-display text-xl font-bold text-emerald">{p.full_name.slice(0, 1)}</span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-display text-lg font-bold">{p.full_name}</span>
-                  <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs">
-                    <span className={`rounded-full px-2 py-0.5 font-semibold ${p.joined ? 'bg-mint text-emerald' : 'bg-gold/30 text-[#7a5600]'}`}>{p.joined ? t('patients.joined') : t('patients.invited')}</span>
-                    {p.doctor_only && <span className="rounded-full bg-coral/15 px-2 py-0.5 font-semibold text-coral">⚕︎</span>}
-                    {p.last_active && <span className="text-ink/50">{t('quiet.last', { d: p.last_active })}</span>}
-                  </span>
-                </span>
-                {diff !== null && <span className={`shrink-0 font-latin text-lg font-semibold ${diff <= 0 ? 'text-emerald' : 'text-coral'}`}>{diff > 0 ? '+' : ''}{diff}</span>}
-              </button>
-            </li>
-          )
-        })}</ul>
+      {list.length === 0 ? <Empty>{L('No patients here yet.', 'इथे अजून पेशंट नाहीत.')}</Empty> : (
+        <Dc className="p-0! overflow-hidden">
+          <div className="hidden grid-cols-[1fr_110px_120px_120px_110px] gap-3 border-b border-line px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-mu lg:grid">
+            <span>{L('Patient', 'पेशंट')}</span><span>{L('Week', 'आठवडा')}</span><span>{L('Weight', 'वजन')}</span><span>{L('Last active', 'शेवटचं')}</span><span>{L('App', 'ॲप')}</span>
+          </div>
+          <ul>{list.map((p, i) => {
+            const diff = p.start_weight && p.last_weight ? +(Number(p.last_weight) - Number(p.start_weight)).toFixed(1) : null
+            return (
+              <li key={p.id} className="rise border-b border-line last:border-0" style={{ '--i': Math.min(i, 10) } as React.CSSProperties}>
+                <button onClick={() => go(`p/${p.id}`)} className="grid w-full grid-cols-[1fr_auto] items-center gap-3 px-4 py-3 text-left hover:bg-sand/50 lg:grid-cols-[1fr_110px_120px_120px_110px] lg:px-5" style={{ minHeight: 64 }}>
+                  <span className="flex min-w-0 items-center gap-3"><Av name={p.full_name} />
+                    <span className="min-w-0"><span className="flex items-center gap-1.5 truncate font-bold">{p.full_name}{p.unread ? <span className="tag t-co">{p.unread} {L('new', 'नवीन')}</span> : null}{p.is_demo ? <span className="tag t-gr">Demo</span> : null}</span>
+                      <span className="flex flex-wrap gap-1 text-xs text-mu">{p.doctor_only && <span className="tag t-red">⚕ {L('Doctor-only', 'फक्त डॉक्टर')}</span>}<span className="lg:hidden">{p.week ? `${L('Week', 'आठवडा')} ${p.week}` : ''}</span></span></span></span>
+                  <span className="hidden text-sm lg:block">{p.week ? `${L('Week', 'आठवडा')} ${p.week}` : '—'}</span>
+                  <span className={`text-right font-latin font-semibold lg:text-left ${diff === null ? 'text-mu' : diff <= 0 ? 'text-emerald' : 'text-coral'}`}>{diff === null ? '—' : `${diff > 0 ? '+' : ''}${diff} kg`}</span>
+                  <span className="hidden text-sm text-mu lg:block">{p.last_active ?? '—'}</span>
+                  <span className="hidden lg:block"><span className={`tag ${p.joined ? 't-em' : 't-amb'}`}>{p.joined ? L('On app', 'ॲपवर') : L('Invited', 'आमंत्रित')}</span></span>
+                </button>
+              </li>
+            )
+          })}</ul>
+        </Dc>
       )}
-      {adding && <AddSheet onClose={() => setAdding(false)} onDone={q.reload} />}
+      {adding && <PatientForm onClose={() => setAdding(false)} onSaved={q.reload} />}
     </div>
   )
 }

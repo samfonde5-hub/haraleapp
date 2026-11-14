@@ -78,3 +78,37 @@ button:not(:disabled):active { transform: scale(.96); }
 }
 @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
 .sheet { animation: sheet-up .4s var(--ease-out) both; }
+
+/* ---------- Doctor panel tokens (prototype D-screens) ---------- */
+@theme {
+  --color-emd: #0A4F38;
+  --color-line: #E7E2D8;
+  --color-mintl: #E4F8EE;
+  --color-mu: #6B756F;
+  --color-red: #D9534F;
+  --color-redl: #FDECEA;
+  --color-amb: #E8A33D;
+  --color-ambl: #FDF3E2;
+  --color-sand: #F3EFE7;
+  --color-canvas: #F6F4EF;
+}
+.dc { background: #fff; border: 1px solid var(--color-line); border-radius: 18px; padding: 18px 20px; }
+.tag { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 12px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.t-em { background: var(--color-mintl); color: var(--color-emerald); }
+.t-co { background: #FFEDE6; color: #D9552B; }
+.t-red { background: var(--color-redl); color: var(--color-red); }
+.t-amb { background: var(--color-ambl); color: #B57414; }
+.t-gr { background: var(--color-sand); color: var(--color-mu); }
+.dbtn { min-height: 42px; border-radius: 12px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 15px; }
+.dbtn.p { background: var(--color-coral); color: #fff; }
+.dbtn.e { background: var(--color-emerald); color: #fff; }
+.dbtn.g { background: #fff; border: 1px solid var(--color-line); color: var(--color-ink); }
+.mini { min-height: 32px !important; border-radius: 9px; padding: 0 12px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.dfield { min-height: 44px; width: 100%; border-radius: 12px; border: 1px solid var(--color-line); background: #fff; padding: 8px 12px; font-size: 15px; outline: none; }
+.dfield:focus { border-color: var(--color-emerald); box-shadow: 0 0 0 3px rgba(15,107,76,.12); }
+.dlabel { display: block; font-size: 13px; font-weight: 600; color: var(--color-mu); }
+@media print {
+  .no-print { display: none !important; }
+  body, .print-bg { background: #fff !important; }
+  .dc { break-inside: avoid; }
+}

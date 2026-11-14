@@ -26,6 +26,7 @@ Return JSON only.
 - confidence: 0 to 1.
 - tip_mr: one friendly, encouraging tip in simple Marathi (Devanagari), max 14 words.
 - tip_en: the same tip in simple English, max 14 words.
+- portions: rough % of the plate area for grains (rice/roti/bhakri), veg (sabzi/salad), protein (usal/egg/paneer/meat/curd), dal (varan/amti/pithla). Should add up to about 100.
 Rules for tips: general food-balance advice only (more salad, add dal, smaller rice portion, drink water). Never mention diseases, medicines, supplements, calories numbers, or promise weight loss. Never use Hindi. If tag is unclear, ask them to retake the photo in good light.`
 
 const SCHEMA = {
@@ -36,8 +37,9 @@ const SCHEMA = {
     confidence: { type: 'NUMBER' },
     tip_mr: { type: 'STRING' },
     tip_en: { type: 'STRING' },
+    portions: { type: 'OBJECT', properties: { grains: { type: 'NUMBER' }, veg: { type: 'NUMBER' }, protein: { type: 'NUMBER' }, dal: { type: 'NUMBER' } } },
   },
-  required: ['items', 'tag', 'confidence', 'tip_mr', 'tip_en'],
+  required: ['items', 'tag', 'confidence', 'tip_mr', 'tip_en', 'portions'],
 }
 
 async function gemini(b64: string, mime: string) {
@@ -117,6 +119,7 @@ Deno.serve(async (req) => {
       tip_mr: showTip ? clip(ai.tip_mr) : null,
       tip_en: showTip ? clip(ai.tip_en) : null,
       model: ai.model,
+      portions: ai.portions && typeof ai.portions === 'object' ? Object.fromEntries(['grains', 'veg', 'protein', 'dal'].map((k) => [k, Math.max(0, Math.min(100, Math.round(Number(ai.portions[k]) || 0)))])) : undefined,
     }
     const { error: ue } = await admin.from('checkins').update({ ai_tag: tag, ai_confidence: confidence, ai_items }).eq('id', c.id)
     if (ue) return out({ error: 'save' }, 500)

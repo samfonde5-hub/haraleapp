@@ -9,8 +9,9 @@ export type Checkin = { id: string; log_date: string; meal: 'breakfast' | 'lunch
 export type PlanBody = { days?: { label: string; meals: { time: string; text: string }[] }[]; workout?: string }
 export type Plan = { id: string; week_no: number; status: string; focus_goal: string | null; body: PlanBody; doctor_note: string | null; approved_at: string | null }
 export type Alert = { id: string; status: string; created_at: string }
-type Home = { patient: Patient | null; logs: DailyLog[]; checkins: Checkin[]; plan: Plan | null; alert?: Alert | null }
-const EMPTY: Home = { patient: null, logs: [], checkins: [], plan: null, alert: null }
+export type NextAppt = { id: string; starts_at: string; kind: string; status: string; meet_link: string | null }
+type Home = { patient: Patient | null; logs: DailyLog[]; checkins: Checkin[]; plan: Plan | null; alert?: Alert | null; next_appt?: NextAppt | null; unread?: number }
+const EMPTY: Home = { patient: null, logs: [], checkins: [], plan: null, alert: null, next_appt: null, unread: 0 }
 
 /**
  * All patient-screen data in ONE server call (rpc patient_home), shown instantly from
@@ -70,7 +71,8 @@ export function usePatientData(uid: string) {
     return { active, streak, todayCheckins: home.checkins.filter((c) => c.log_date === today) }
   }, [home, today])
 
-  return { loading, ...home, todayLog, ...derived, reload, patchLog, addLocalCheckin, raiseAlert }
+  const clearUnread = useCallback(() => save({ ...home, unread: 0 }), [home, save])
+  return { loading, ...home, todayLog, ...derived, reload, patchLog, addLocalCheckin, raiseAlert, clearUnread }
 }
 
 const urlCache = new Map<string, string>()

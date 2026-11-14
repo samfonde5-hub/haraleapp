@@ -58,7 +58,21 @@ export default function Today({ data, go, name }: { data: Data; go: (tab: string
           </div>
         </div>
         <p className="mt-3 text-lg leading-relaxed text-ink/85">{plan?.doctor_note || t('doctor_card.empty')}</p>
+        {patient && (
+          <button onClick={() => go('msgs')} className="mt-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-mint/50 text-lg font-bold text-emerald">
+            💬 {t('msgs.open')}{data.unread ? <span className="pop rounded-full bg-coral px-2 text-sm text-white">{data.unread} {t('msgs.new')}</span> : null}
+          </button>
+        )}
       </Card>
+
+      {data.next_appt && (
+        <Card i={2} className="border-l-8 border-gold">
+          <p className="font-latin text-xs uppercase tracking-widest text-coral">{t('appt.title')}</p>
+          <p className="mt-1 font-display text-xl font-bold">{new Date(data.next_appt.starts_at).toLocaleString(undefined, { weekday: 'long', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' })}</p>
+          <p className="text-ink/70">{t(`appt.${data.next_appt.kind}`)}</p>
+          {data.next_appt.meet_link && <a href={data.next_appt.meet_link} target="_blank" rel="noreferrer" className="mt-2 flex min-h-12 items-center justify-center rounded-2xl bg-emerald font-bold text-white">{t('appt.join')}</a>}
+        </Card>
+      )}
 
       {patient && (
         <Card i={2}>

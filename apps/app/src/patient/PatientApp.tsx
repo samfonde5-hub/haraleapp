@@ -12,6 +12,7 @@ import Progress from './Progress'
 import Plan from './Plan'
 import Me from './Me'
 import Onboarding from './Onboarding'
+import Messages from './Messages'
 
 const TABS = [
   { id: 'today', icon: '🏠' },
@@ -23,7 +24,7 @@ const TABS = [
 
 function readTab() {
   const h = location.hash.replace('#/', '')
-  return TABS.some((x) => x.id === h) ? h : 'today'
+  return h === 'msgs' || TABS.some((x) => x.id === h) ? h : 'today'
 }
 
 export default function PatientApp() {
@@ -77,7 +78,8 @@ export default function PatientApp() {
             <Skeleton className="h-32" />
             <Skeleton className="h-48" />
           </div>
-        ) : tab === 'today' ? <Today data={data} go={go} name={firstName} />
+        ) : tab === 'msgs' && data.patient ? <Messages patientId={data.patient.id} uid={uid} back={() => go('today')} onRead={data.clearUnread} />
+          : tab === 'today' ? <Today data={data} go={go} name={firstName} />
           : tab === 'checkin' ? <Checkin data={data} uid={uid} />
           : tab === 'progress' ? <Progress data={data} />
           : tab === 'plan' ? <Plan data={data} />
