@@ -1,11 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import '@fontsource/baloo-2/700.css'
-import '@fontsource/baloo-2/800.css'
-import '@fontsource/mukta/400.css'
-import '@fontsource/mukta/600.css'
-import '@fontsource/mukta/700.css'
-import '@fontsource/poppins/600.css'
+// Fonts: sirf Devanagari + Latin, woff2 only (pehle saare languages ke 1.4MB fonts aa rahe the)
+import './fonts.css'
 import './index.css'
 import './i18n'
 import App from './App'
@@ -15,3 +11,6 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+// Patient app ka code, browser free hote hi pehle se le aao (agli screen instant khule)
+const idle = (cb: () => void) => ('requestIdleCallback' in window ? requestIdleCallback(cb) : setTimeout(cb, 1500))
+idle(() => { import('./patient/PatientApp') })

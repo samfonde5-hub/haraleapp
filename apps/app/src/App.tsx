@@ -1,22 +1,24 @@
-import { useTranslation } from 'react-i18next'
+import { lazy, Suspense } from 'react'
 import { AuthProvider, useAuth } from './lib/auth'
-import Login from './screens/Login'
-import Consent from './screens/Consent'
-import { DoctorHome } from './screens/Homes'
-import PatientApp from './patient/PatientApp'
+import { ToastProvider } from './components/Toast'
+
+// Code-splitting: har screen alag chhoti file. Patient ko doctor ka code download hi nahi karna padta.
+const Login = lazy(() => import('./screens/Login'))
+const Consent = lazy(() => import('./screens/Consent'))
+const DoctorHome = lazy(() => import('./screens/Homes').then((m) => ({ default: m.DoctorHome })))
+const PatientApp = lazy(() => import('./patient/PatientApp'))
+
+function Splash() {
+  return (
+    <div className="flex min-h-dvh items-center justify-center" aria-busy="true">
+      <img src="/logo.png" alt="Chinmay Wellness" className="pop h-14" />
+    </div>
+  )
+}
 
 function Router() {
-  const { t } = useTranslation()
   const { loading, session, profile, consents } = useAuth()
-
-  if (loading) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center" aria-busy="true">
-        <img src="/logo.png" alt="" className="h-14 animate-pulse" />
-        <span className="sr-only">{t('wait')}</span>
-      </div>
-    )
-  }
+  if (loading) return <Splash />
   if (!session || !profile) return <Login />
   if (profile.role === 'doctor' || profile.role === 'staff') return <DoctorHome />
   if (!consents.health_data) return <Consent />
@@ -26,7 +28,11 @@ function Router() {
 export default function App() {
   return (
     <AuthProvider>
-      <Router />
+      <ToastProvider>
+        <Suspense fallback={<Splash />}>
+          <Router />
+        </Suspense>
+      </ToastProvider>
     </AuthProvider>
   )
 }

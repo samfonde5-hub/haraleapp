@@ -13,7 +13,7 @@ const ITEMS: { type: ConsentType; required: boolean }[] = [
 
 export default function Consent() {
   const { t } = useTranslation()
-  const { refresh, consents } = useAuth()
+  const { refresh, consents, setConsentLocal } = useAuth()
   const [val, setVal] = useState<Record<ConsentType, boolean>>({
     health_data: consents.health_data ?? false,
     ai_drafts: consents.ai_drafts ?? true,
@@ -33,16 +33,17 @@ export default function Consent() {
       .insert(ITEMS.map((i) => ({ type: i.type, granted: val[i.type], version: 'v1' })))
     setBusy(false)
     if (error) return setErr(t('consent.save_fail'))
-    await refresh()
+    ITEMS.forEach((i) => setConsentLocal(i.type, val[i.type])) // turant aage jao
+    refresh()
   }
 
   return (
     <Shell>
-      <h1 className="mt-6 font-display text-3xl font-extrabold">{t('consent.title')}</h1>
+      <h1 className="rise mt-6 font-display text-3xl font-extrabold">{t('consent.title')}</h1>
       <p className="mt-2 text-lg text-ink/80">{t('consent.sub')}</p>
       <ul className="mt-5 flex flex-col gap-3">
-        {ITEMS.map((i) => (
-          <li key={i.type} className="rounded-2xl bg-white p-4 shadow-sm">
+        {ITEMS.map((i, k) => (
+          <li key={i.type} className="rise rounded-2xl bg-white p-4 shadow-sm" style={{ '--i': k } as React.CSSProperties}>
             <label className="flex cursor-pointer items-start gap-4">
               <input
                 type="checkbox"

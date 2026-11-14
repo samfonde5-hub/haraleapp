@@ -1,11 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
+import { clearUserCache, readCache, writeCache } from './cache'
 
 export type Role = 'patient' | 'doctor' | 'staff'
 export type Profile = { id: string; role: Role; full_name: string | null; email: string | null; lang: 'mr' | 'en' }
 export type ConsentType = 'health_data' | 'ai_drafts' | 'reminders' | 'story'
 export type Consents = Partial<Record<ConsentType, boolean>>
+type Me = { profile: Profile | null; consents: Consents }
 
 type AuthState = {
   loading: boolean
@@ -13,6 +15,8 @@ type AuthState = {
   profile: Profile | null
   consents: Consents
   refresh: () => Promise<void>
+  setConsentLocal: (t: ConsentType, v: boolean) => void
+  setProfileLocal: (p: Partial<Profile>) => void
   signOut: () => Promise<void>
 }
 
@@ -21,47 +25,50 @@ const Ctx = createContext<AuthState | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [session, setSession] = useState<Session | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [consents, setConsents] = useState<Consents>({})
+  const [me, setMe] = useState<Me>({ profile: null, consents: {} })
+  const lastUid = useRef<string | null>(null)
 
-  const load = useCallback(async (s: Session | null) => {
-    setSession(s)
-    if (!s) {
-      setProfile(null)
-      setConsents({})
-      setLoading(false)
-      return
+  const fetchMe = useCallback(async (uid: string) => {
+    const { data, error } = await supabase.rpc('me')
+    if (!error && data) {
+      const m = data as Me
+      setMe(m)
+      writeCache(`c:me:${uid}`, m)
     }
-    // RLS: ye queries sirf is user ka apna data laati hain
-    const [{ data: p }, { data: c }] = await Promise.all([
-      supabase.from('profiles').select('id, role, full_name, email, lang').eq('id', s.user.id).single(),
-      supabase.from('current_consents').select('type, granted').eq('profile_id', s.user.id),
-    ])
-    setProfile((p as Profile) ?? null)
-    const map: Consents = {}
-    ;(c ?? []).forEach((r: { type: ConsentType; granted: boolean }) => (map[r.type] = r.granted))
-    setConsents(map)
     setLoading(false)
   }, [])
 
+  const apply = useCallback((s: Session | null) => {
+    setSession(s)
+    const uid = s?.user.id ?? null
+    if (!uid) {
+      lastUid.current = null
+      setMe({ profile: null, consents: {} })
+      setLoading(false)
+      return
+    }
+    if (lastUid.current === uid) return // same user: no duplicate fetch (was 2x before)
+    lastUid.current = uid
+    const cached = readCache<Me>(`c:me:${uid}`)
+    if (cached?.profile) { setMe(cached); setLoading(false) } // instant start from phone cache
+    fetchMe(uid)
+  }, [fetchMe])
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => load(data.session))
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
-      // async kaam callback ke bahar, Supabase ki recommendation
-      setTimeout(() => load(s), 0)
-    })
+    supabase.auth.getSession().then(({ data }) => apply(data.session))
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setTimeout(() => apply(s), 0))
     return () => sub.subscription.unsubscribe()
-  }, [load])
+  }, [apply])
 
   const value: AuthState = {
     loading,
     session,
-    profile,
-    consents,
-    refresh: async () => load((await supabase.auth.getSession()).data.session),
-    signOut: async () => {
-      await supabase.auth.signOut()
-    },
+    profile: me.profile,
+    consents: me.consents,
+    refresh: async () => { if (session) await fetchMe(session.user.id) },
+    setConsentLocal: (t, v) => setMe((m) => ({ ...m, consents: { ...m.consents, [t]: v } })),
+    setProfileLocal: (p) => setMe((m) => (m.profile ? { ...m, profile: { ...m.profile, ...p } } : m)),
+    signOut: async () => { clearUserCache(); await supabase.auth.signOut() },
   }
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
