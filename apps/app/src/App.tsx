@@ -5,7 +5,7 @@ import { ToastProvider } from './components/Toast'
 // Code-splitting: har screen alag chhoti file. Patient ko doctor ka code download hi nahi karna padta.
 const Login = lazy(() => import('./screens/Login'))
 const Consent = lazy(() => import('./screens/Consent'))
-const DoctorHome = lazy(() => import('./screens/Homes').then((m) => ({ default: m.DoctorHome })))
+const DoctorApp = lazy(() => import('./doctor/DoctorApp'))
 const PatientApp = lazy(() => import('./patient/PatientApp'))
 
 function Splash() {
@@ -20,7 +20,7 @@ function Router() {
   const { loading, session, profile, consents } = useAuth()
   if (loading) return <Splash />
   if (!session || !profile) return <Login />
-  if (profile.role === 'doctor' || profile.role === 'staff') return <DoctorHome />
+  if (profile.role === 'doctor' || profile.role === 'staff') return <DoctorApp />
   if (!consents.health_data) return <Consent />
   return <PatientApp />
 }

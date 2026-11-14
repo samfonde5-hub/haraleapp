@@ -1,6 +1,7 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import { patientMr, patientEn } from './locales/patient'
+import { doctorMr, doctorEn } from './locales/doctor'
 
 export const LANGS = [
   { code: 'mr', label: 'मराठी' },
@@ -8,7 +9,7 @@ export const LANGS = [
 ] as const
 
 const resources = {
-  mr: { p: patientMr, t: {
+  mr: { p: patientMr, d: doctorMr, t: {
     tagline: 'डॉ. हराळे यांची रोजची साथ',
     welcome: 'नमस्कार! 🙏',
     sub: 'तुमचं वजन, तुमची सवय, आणि डॉक्टरांचं रोजचं मार्गदर्शन — एकाच ॲपमध्ये.',
@@ -57,7 +58,7 @@ const resources = {
     patient: { hello: 'स्वागत आहे! 🙏', soon: 'तुमचं प्रोफाइल डॉक्टर लवकरच सुरू करतील. पुढच्या टप्प्यात इथे तुमचा रोजचा प्लॅन दिसेल.' },
     doctor: { hello: 'नमस्कार डॉक्टर 🙏', soon: 'तुमचा डॅशबोर्ड तयार होत आहे. पुढच्या टप्प्यात इथे आजचे पेशंट्स दिसतील.' },
   } },
-  en: { p: patientEn, t: {
+  en: { p: patientEn, d: doctorEn, t: {
     tagline: "Dr. Harale's daily support",
     welcome: 'Hello! 🙏',
     sub: "Your weight, your habits and the doctor's daily guidance — in one app.",

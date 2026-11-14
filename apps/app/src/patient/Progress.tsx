@@ -7,7 +7,7 @@ import walk from '../assets/banners/onboard-progress.webp'
 type Data = ReturnType<typeof usePatientData>
 
 /** Tiny SVG line chart — no chart library (keeps the app light). */
-function WeightChart({ points }: { points: { d: string; w: number }[] }) {
+export function WeightChart({ points }: { points: { d: string; w: number }[] }) {
   const W = 320, H = 150, P = 18
   const ws = points.map((p) => p.w)
   const min = Math.min(...ws) - 0.5, max = Math.max(...ws) + 0.5
