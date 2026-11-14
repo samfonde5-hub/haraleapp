@@ -5,6 +5,7 @@ import { useToast } from '../components/Toast'
 import { daysBetween, partOfDay, todayIST } from '../lib/dates'
 import { haptic } from '../lib/feel'
 import type { usePatientData } from '../lib/patient'
+import Safety from './Safety'
 import morning from '../assets/banners/today-morning.webp'
 import lunch from '../assets/banners/today-lunch.webp'
 import evening from '../assets/banners/today-evening.webp'
@@ -94,6 +95,8 @@ export default function Today({ data, go, name }: { data: Data; go: (tab: string
           </ul>
         </Card>
       )}
+
+      {patient && <Safety data={data} />}
     </div>
   )
 }

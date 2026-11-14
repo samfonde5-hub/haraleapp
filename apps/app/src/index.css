@@ -76,3 +76,5 @@ button:not(:disabled):active { transform: scale(.96); }
     animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; animation-delay: 0s !important;
   }
 }
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+.sheet { animation: sheet-up .4s var(--ease-out) both; }

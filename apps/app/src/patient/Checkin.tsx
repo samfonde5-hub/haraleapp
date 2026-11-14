@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Card, PhotoBanner } from '../components/Visual'
 import { SuccessCheck, useToast } from '../components/Toast'
 import { compressImage } from '../lib/image'
-import { queueCheckin, uploadCheckin } from '../lib/offline'
+import { analyzePlate, queueCheckin, uploadCheckin } from '../lib/offline'
+import { useAuth } from '../lib/auth'
 import { haptic } from '../lib/feel'
 import { useSignedUrl, type Checkin as CheckinRow, type usePatientData } from '../lib/patient'
 import { partOfDay, todayIST } from '../lib/dates'
@@ -12,18 +13,43 @@ import emptyImg from '../assets/banners/checkin-empty.webp'
 type Data = ReturnType<typeof usePatientData>
 const MEALS = ['breakfast', 'lunch', 'dinner', 'snack'] as const
 
+const TAG_STYLE: Record<string, string> = {
+  balanced: 'bg-mint text-emerald', rice_extra: 'bg-gold/30 text-[#7a5600]', low_veg: 'bg-gold/30 text-[#7a5600]',
+  fried: 'bg-coral/15 text-coral', sweet: 'bg-coral/15 text-coral', unclear: 'bg-ink/10 text-ink/70',
+}
+
 function Thumb({ c, i }: { c: CheckinRow; i: number }) {
-  const { t } = useTranslation('p')
+  const { t, i18n } = useTranslation('p')
+  const { consents } = useAuth()
   const signed = useSignedUrl(c.localUrl ? null : c.photo_path)
   const url = c.localUrl ?? signed
   const [loaded, setLoaded] = useState(false)
+  const fresh = Date.now() - Date.parse(c.created_at) < 3 * 60_000
+  const analyzing = !c.ai_tag && !!consents.ai_drafts && (!!c.localUrl || fresh)
+  const tip = c.ai_items ? (i18n.language === 'en' ? c.ai_items.tip_en : c.ai_items.tip_mr) : null
   return (
-    <li className="pop overflow-hidden rounded-2xl bg-paper" style={{ animationDelay: `${i * 60}ms` }}>
-      <div className={`aspect-square ${loaded ? 'bg-ink/5' : 'skeleton'}`}>
-        {url && <img src={url} alt="" onLoad={() => setLoaded(true)} className={`h-full w-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} />}
+    <li className="pop col-span-2 overflow-hidden rounded-2xl bg-paper sm:col-span-1" style={{ animationDelay: `${i * 60}ms` }}>
+      <div className="flex gap-3">
+        <div className={`aspect-square w-28 shrink-0 overflow-hidden rounded-2xl ${loaded ? 'bg-ink/5' : 'skeleton'}`}>
+          {url && <img src={url} alt="" onLoad={() => setLoaded(true)} className={`h-full w-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} />}
+        </div>
+        <div className="min-w-0 flex-1 py-2 pr-3">
+          <p className="text-sm font-bold">{t(`checkin.${c.meal}`)}</p>
+          {analyzing && (
+            <p className="mt-1 flex items-center gap-2 text-sm text-emerald">
+              <span className="relative flex h-3 w-3"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald/60" /><span className="relative inline-flex h-3 w-3 rounded-full bg-emerald" /></span>
+              {t('ai.checking')}
+            </p>
+          )}
+          {c.ai_tag && (
+            <div className="rise">
+              <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-sm font-bold ${TAG_STYLE[c.ai_tag] ?? TAG_STYLE.unclear}`}>✨ {t(`ai.tags.${c.ai_tag}`)}</span>
+              {tip && <p className="mt-1 text-sm leading-snug text-ink/80">{tip}</p>}
+            </div>
+          )}
+          {c.doctor_reaction && <p className="mt-1 text-sm font-semibold text-emerald">{t('checkin.reaction')} {c.doctor_reaction}</p>}
+        </div>
       </div>
-      <p className="px-3 pt-2 text-sm font-bold">{t(`checkin.${c.meal}`)} {c.localUrl && <span className="ml-1 inline-block h-2 w-2 animate-pulse rounded-full bg-gold align-middle" aria-label="uploading" />}</p>
-      {c.doctor_reaction ? <p className="px-3 pb-2 text-sm text-emerald">{t('checkin.reaction')} {c.doctor_reaction}</p> : <div className="pb-2" />}
     </li>
   )
 }
@@ -67,7 +93,9 @@ export default function Checkin({ data, uid }: { data: Data; uid: string }) {
         if (!navigator.onLine) throw new Error('offline')
         await uploadCheckin(p)
         toast(t('checkin.saved'))
-        data.reload()
+        await data.reload() // server row aa gaya → "AI तपासत आहे…" dikhega
+        await analyzePlate(p.id)
+        data.reload() // AI tag + tip aa gaye
       } catch (e) {
         if (!navigator.onLine || (e as Error).message === 'offline') { await queueCheckin(p); toast(t('checkin.queued')) }
         else { toast(t('checkin.fail'), false); data.reload() }
@@ -164,7 +192,10 @@ export default function Checkin({ data, uid }: { data: Data; uid: string }) {
       <Card i={3}>
         <h2 className="font-display text-xl font-bold">{t('checkin.today')}</h2>
         {todayCheckins.length === 0 ? <p className="mt-2 text-ink/60">{t('checkin.none')}</p> : (
-          <ul className="mt-3 grid grid-cols-2 gap-3">{todayCheckins.map((c, i) => <Thumb key={c.id} c={c} i={i} />)}</ul>
+          <>
+            <ul className="mt-3 grid grid-cols-2 gap-3">{todayCheckins.map((c, i) => <Thumb key={c.id} c={c} i={i} />)}</ul>
+            {todayCheckins.some((c) => c.ai_tag) && <p className="mt-3 text-xs text-ink/50">{t('ai.note')}</p>}
+          </>
         )}
       </Card>
     </div>

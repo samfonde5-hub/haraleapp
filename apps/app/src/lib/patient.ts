@@ -5,11 +5,12 @@ import { readCache, writeCache } from './cache'
 
 export type Patient = { id: string; full_name: string; start_date: string | null; start_weight: number | null; target_weight: number | null; program: string; status: string }
 export type DailyLog = { id: string; log_date: string; weight_kg: number | null; water_glasses: number | null; steps: number | null; mood: number | null }
-export type Checkin = { id: string; log_date: string; meal: 'breakfast' | 'lunch' | 'dinner' | 'snack'; photo_path: string | null; note: string | null; doctor_reaction: string | null; created_at: string; localUrl?: string }
+export type Checkin = { id: string; log_date: string; meal: 'breakfast' | 'lunch' | 'dinner' | 'snack'; photo_path: string | null; note: string | null; doctor_reaction: string | null; created_at: string; ai_tag?: string | null; ai_items?: { items?: string[]; tip_mr?: string | null; tip_en?: string | null } | null; localUrl?: string; analyzing?: boolean }
 export type PlanBody = { days?: { label: string; meals: { time: string; text: string }[] }[]; workout?: string }
 export type Plan = { id: string; week_no: number; status: string; focus_goal: string | null; body: PlanBody; doctor_note: string | null; approved_at: string | null }
-type Home = { patient: Patient | null; logs: DailyLog[]; checkins: Checkin[]; plan: Plan | null }
-const EMPTY: Home = { patient: null, logs: [], checkins: [], plan: null }
+export type Alert = { id: string; status: string; created_at: string }
+type Home = { patient: Patient | null; logs: DailyLog[]; checkins: Checkin[]; plan: Plan | null; alert?: Alert | null }
+const EMPTY: Home = { patient: null, logs: [], checkins: [], plan: null, alert: null }
 
 /**
  * All patient-screen data in ONE server call (rpc patient_home), shown instantly from
@@ -21,7 +22,7 @@ export function usePatientData(uid: string) {
   const [home, setHome] = useState<Home>(cached ?? EMPTY)
   const [loading, setLoading] = useState(!cached)
 
-  const save = useCallback((h: Home) => { setHome(h); writeCache(key, { ...h, checkins: h.checkins.map(({ localUrl: _l, ...c }) => c) }) }, [key])
+  const save = useCallback((h: Home) => { setHome(h); writeCache(key, { ...h, checkins: h.checkins.filter((c) => !c.localUrl).map(({ analyzing: _a, ...c }) => c) }) }, [key])
 
   const reload = useCallback(async () => {
     const { data, error } = await supabase.rpc('patient_home')
@@ -49,6 +50,15 @@ export function usePatientData(uid: string) {
   /** Show a just-taken photo in the list immediately (before upload finishes). */
   const addLocalCheckin = useCallback((c: Checkin) => save({ ...home, checkins: [c, ...home.checkins] }), [home, save])
 
+  /** Safety button: seedha doctor ko alert (AI is raaste pe kabhi jawab nahi deta). */
+  const raiseAlert = useCallback(async (note: string) => {
+    if (!home.patient) return { error: 'no patient' }
+    const { data, error } = await supabase.from('alerts').insert({ patient_id: home.patient.id, note: note.trim().slice(0, 500) || null }).select('id, status, created_at').single()
+    if (error) return { error: error.code === '54000' ? 'too_many' : error.message }
+    save({ ...home, alert: data as Alert })
+    return { error: null }
+  }, [home, save])
+
   const derived = useMemo(() => {
     const active = new Set([...home.logs.map((l) => l.log_date), ...home.checkins.map((c) => c.log_date)])
     let streak = 0
@@ -60,7 +70,7 @@ export function usePatientData(uid: string) {
     return { active, streak, todayCheckins: home.checkins.filter((c) => c.log_date === today) }
   }, [home, today])
 
-  return { loading, ...home, todayLog, ...derived, reload, patchLog, addLocalCheckin }
+  return { loading, ...home, todayLog, ...derived, reload, patchLog, addLocalCheckin, raiseAlert }
 }
 
 const urlCache = new Map<string, string>()

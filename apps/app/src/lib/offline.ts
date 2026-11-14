@@ -4,6 +4,12 @@
  */
 import { supabase } from './supabase'
 
+/** Server pe AI se thali check karwao (Gemini key server pe hi hai). Fail ho to chupchaap — doctor to dekhenge hi. */
+export async function analyzePlate(checkinId: string) {
+  const { data, error } = await supabase.functions.invoke('analyze-plate', { body: { checkin_id: checkinId } })
+  return error ? null : (data as { ai_tag?: string } | null)
+}
+
 type Pending = { id: string; uid: string; patientId: string; meal: string; note: string; logDate: string; blob: Blob }
 const DB = 'chinmay-offline'
 const STORE = 'checkins'
@@ -48,7 +54,7 @@ export async function uploadCheckin(p: Pending) {
   const up = await supabase.storage.from('plates').upload(path, p.blob, { contentType: p.blob.type, upsert: true })
   if (up.error) throw up.error
   const ins = await supabase.from('checkins').insert({
-    patient_id: p.patientId, meal: p.meal, note: p.note || null, photo_path: path, log_date: p.logDate,
+    id: p.id, patient_id: p.patientId, meal: p.meal, note: p.note || null, photo_path: path, log_date: p.logDate,
   })
   if (ins.error) throw ins.error
 }
@@ -60,7 +66,7 @@ export async function flushQueue(): Promise<number> {
   let done = 0
   try {
     for (const p of await all()) {
-      try { await uploadCheckin(p); await remove(p.id); done++ } catch { /* try next time */ }
+      try { await uploadCheckin(p); await remove(p.id); analyzePlate(p.id); done++ } catch { /* try next time */ }
     }
   } finally { flushing = false }
   return done
