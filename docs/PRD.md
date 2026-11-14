@@ -65,7 +65,7 @@ The system has 3 parts that share **one database**:
 | # | Feature | Detail |
 |---|---|---|
 | L1 | ✅ Hero + doctor ki story | Doctor ka real photo, "95 → 83 kg" story, disclaimer |
-| L2 | ✅ Language switch | मराठी / हिंदी / English, choice yaad rahegi |
+| L2 | ✅ Language switch | मराठी / English (sirf 2 bhasha, Marathi default), choice yaad rahegi |
 | L3 | ✅ Doctor horizontal video | YouTube unlisted embed (free hosting, fast), "click to play" (page heavy nahi hoga) |
 | L4 | ✅ Testimonial reels (vertical) | Sirf consent wale, disclaimer ke saath |
 | L5 | ✅ Voice intake | Doctor ka voice note play → visitor apni problem **bolke** batata hai → text banta hai → lead create |
@@ -166,13 +166,13 @@ The system has 3 parts that share **one database**:
 |---|---|---|
 | Frontend (app) | **React + Vite + TypeScript**, Tailwind CSS | Fast, simple, PWA-ready, TS se bugs kam |
 | Frontend (landing) | **Astro** (static) | Bahut fast page load = ads ka cost kam, SEO achha |
-| UI language | i18n (mr / hi / en) via `i18next` | Ek click me language badle |
+| UI language | i18n (mr / en — **Hindi nahi**) via `i18next` | Ek click me language badle |
 | PWA | `vite-plugin-pwa` (service worker) | Offline, install, push notifications |
 | Backend / DB | **Supabase** (Postgres + Auth + Storage + Realtime) | Login, database, files, live chat ek jagah, free |
 | Server logic | **Supabase Edge Functions** (500k calls/month free) | API keys browser me kabhi nahi jaati; secrets Supabase vault me, kisi ko paste nahi karne padte |
 | Scheduler | **Supabase pg_cron + pg_net** → Edge Functions | Daily/weekly automations free me, database ke paas hi |
 | AI | **Google Gemini Flash** (vision + text + TTS) | Marathi samajhta hai, thali photo samajhta hai, sasta |
-| Voice → text | **Workers AI Whisper** (free daily quota), fallback Gemini | Free, Hindi/Marathi |
+| Voice → text | **Gemini** (audio input), fallback Workers AI Whisper | Marathi + Marathi-English mix samajhta hai |
 | Email | **Resend** | OTP, digests, reports |
 | Hosting | **Cloudflare Pages** | Free commercial use, unlimited traffic |
 | Code | **GitHub** (private repo) | Version history, auto-deploy |
@@ -317,7 +317,7 @@ Score (0–100) = missed check-ins + mood dips + unread messages + weight stall 
 |---|---|---|---|
 | Plate analysis | Gemini Flash (vision) | Photo → `{items[], tag, confidence}` | Confidence < 0.6 → "Unclear photo", doctor decide kare |
 | Weekly plan draft | Gemini Flash (text) | Patient data + templates → plan JSON | Doctor approval mandatory, template ke bahar ka food reject |
-| Voice → text | Workers AI Whisper → fallback Gemini | Audio → Marathi/Hindi text | Original audio bhi saved |
+| Voice → text | Gemini → fallback Workers AI Whisper | Audio → Marathi/English text | Original audio bhi saved |
 | Text → voice | Gemini TTS | Plan/message → Marathi audio | Sirf approved content padha jaata hai |
 | Report extraction | Gemini Flash (vision) | Report → lab values JSON | Doctor verify ke bina memory me nahi |
 | Lead summary | Gemini Flash | Transcript → 3 lines | Internal only |
@@ -328,7 +328,7 @@ Score (0–100) = missed check-ins + mood dips + unread messages + weight stall 
 - Prompts me patient ka **naam/phone nahi** jaayega, sirf ID + zaroori data (data minimization).
 - Gemini **paid tier** (billing ON, client ka card), kyunki free tier ka data review/training me use ho sakta hai. Patient data ke liye free tier nahi.
 - Har AI call `ai_usage` me log hogi (cost track), aur per-patient daily limit rakhenge.
-- Language: patient ki choice (mr/hi/en) me output.
+- Language: patient ki choice (mr/en) me output. **Hindi kahin nahi.**
 
 **Estimated AI cost (100 patients):** ~3 photos/day + weekly plans + voice ≈ **₹300–800/month** (client ke card pe pass-through). Ise launch ke baad real usage se verify karenge.
 
@@ -443,7 +443,7 @@ Quiet hours: **9 PM – 7 AM koi notification nahi** (urgent safety alert chhodk
 | Availability | 99.5% (Cloudflare + Supabase) |
 | Scale (v1) | 300 patients, 2,000 leads/month, free tier me |
 | Browser support | Android Chrome 90+, iOS Safari 16.4+, desktop Chrome/Edge |
-| Languages | mr (default), hi, en |
+| Languages | mr (default), en — Hindi nahi (client decision, 14 Nov 2026) |
 | Data retention | Plate photos: full 90 days, phir thumbnail; reports: program + 3 saal; deleted accounts: 30 din me purge |
 | Observability | Sentry errors, uptime check (free), daily cron health email to Sam |
 
@@ -496,7 +496,7 @@ Har step me Sam ka approval **pehle** liya jaayega: kya bana rahe hain, kyun, ka
 - [ ] AI plan **bina approval** patient tak jaana impossible (test se prove)
 - [ ] Ek patient doosre patient ka data kisi bhi tarah na dekh sake (RLS test)
 - [ ] Staff medical reports na dekh sake (RLS test)
-- [ ] Language switch har screen pe kaam kare (mr/hi/en)
+- [ ] Language switch har screen pe kaam kare (mr/en)
 - [ ] Account delete karne pe 30 din me data purge ho
 - [ ] Test mode me WhatsApp sirf whitelist number pe jaaye
 - [ ] Lighthouse: Performance 90+, Accessibility 95+

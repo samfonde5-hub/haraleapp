@@ -3,7 +3,6 @@ import { initReactI18next } from 'react-i18next'
 
 export const LANGS = [
   { code: 'mr', label: 'मराठी' },
-  { code: 'hi', label: 'हिंदी' },
   { code: 'en', label: 'English' },
 ] as const
 
@@ -17,17 +16,6 @@ const resources = {
     db_bad: 'डेटाबेसशी संपर्क होत नाही',
     checking: 'तपासत आहे…',
     phase: 'Phase 0 · पाया तयार',
-    lang: 'भाषा',
-  } },
-  hi: { t: {
-    tagline: 'डॉ. हराळे का रोज़ का साथ',
-    welcome: 'नमस्ते! 🙏',
-    sub: 'आपका वज़न, आपकी आदतें और डॉक्टर का रोज़ का मार्गदर्शन — एक ही ऐप में।',
-    status: 'सिस्टम जाँच',
-    db_ok: 'डेटाबेस जुड़ा हुआ है',
-    db_bad: 'डेटाबेस से संपर्क नहीं हो रहा',
-    checking: 'जाँच रहे हैं…',
-    phase: 'Phase 0 · नींव तैयार',
     lang: 'भाषा',
   } },
   en: { t: {
@@ -45,11 +33,14 @@ const resources = {
 
 let saved = 'mr'
 try { saved = localStorage.getItem('lang') || 'mr' } catch { /* private mode */ }
+// Sirf 2 bhasha: Marathi (default) + English. Purana 'hi' save ho to Marathi.
+if (saved !== 'mr' && saved !== 'en') saved = 'mr'
 
 i18n.use(initReactI18next).init({
   resources,
   lng: saved,
   fallbackLng: 'mr',
+  supportedLngs: ['mr', 'en'],
   defaultNS: 't',
   interpolation: { escapeValue: false },
 })
