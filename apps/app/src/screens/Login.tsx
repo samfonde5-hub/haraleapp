@@ -13,7 +13,9 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
-  const [err, setErr] = useState('')
+  const [err, setErr] = useState(() => {
+    try { const e = sessionStorage.getItem('authError'); sessionStorage.removeItem('authError'); return e ? t('login.link_expired') : '' } catch { return '' }
+  })
 
   async function sendCode(e: FormEvent) {
     e.preventDefault()

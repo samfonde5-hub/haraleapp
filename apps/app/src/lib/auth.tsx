@@ -55,6 +55,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchMe])
 
   useEffect(() => {
+    // Purana/expired email link khula ho to URL me "#error=..." aata hai — use saaf karo, message Login screen dikhayega
+    if (location.hash.includes('error=')) {
+      const code = new URLSearchParams(location.hash.slice(1)).get('error_code')
+      try { sessionStorage.setItem('authError', code || 'error') } catch { /* ignore */ }
+      history.replaceState(null, '', location.pathname)
+    }
     supabase.auth.getSession().then(({ data }) => apply(data.session))
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setTimeout(() => apply(s), 0))
     return () => sub.subscription.unsubscribe()
