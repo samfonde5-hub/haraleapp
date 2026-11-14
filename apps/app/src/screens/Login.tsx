@@ -21,7 +21,7 @@ export default function Login() {
     setBusy(true)
     const { error } = await supabase.auth.signInWithOtp({
       email: clean,
-      options: { shouldCreateUser: true, data: { lang: i18n.language } },
+      options: { shouldCreateUser: true, data: { lang: i18n.language }, emailRedirectTo: window.location.origin },
     })
     setBusy(false)
     if (error) return setErr(error.status === 429 ? t('login.too_many') : t('login.send_fail'))
@@ -68,6 +68,7 @@ export default function Login() {
       ) : (
         <form onSubmit={verify} className="mt-6 flex flex-col gap-3" noValidate>
           <p className="text-lg">{t('login.sent_to')} <b className="break-all">{email}</b></p>
+          <p className="rounded-2xl bg-mint/40 p-3 text-ink">{t('login.link_hint')}</p>
           <label htmlFor="code" className="font-display text-lg font-bold">{t('login.code')}</label>
           <input
             id="code"
