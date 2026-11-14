@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/* Brand design tokens (PRD §9). Ek jagah badlo, poore app me badlega. */
+@theme {
+  --color-emerald: #0F6B4C;
+  --color-emerald-dark: #0B3D2C;
+  --color-coral: #FF7A50;
+  --color-mint: #B8F0D8;
+  --color-gold: #F5C04A;
+  --color-ink: #1E2A26;
+  --color-paper: #FBF9F5;
+  --font-display: "Baloo 2", "Poppins", sans-serif;
+  --font-body: "Mukta", "Poppins", sans-serif;
+  --font-latin: "Poppins", sans-serif;
+}
+
+html, body { background: var(--color-paper); color: var(--color-ink); }
+body { font-family: var(--font-body); font-size: 17px; -webkit-font-smoothing: antialiased; }
+/* 50+ age group: minimum 48px tap targets (PRD §9) */
+button, a.btn { min-height: 48px; }
+:focus-visible { outline: 3px solid var(--color-coral); outline-offset: 2px; }
