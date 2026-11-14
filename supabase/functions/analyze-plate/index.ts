@@ -45,20 +45,25 @@ async function gemini(b64: string, mime: string) {
   if (!key) throw new Error('GEMINI_API_KEY missing')
   let lastErr = ''
   for (const model of MODELS) {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: PROMPT }, { inline_data: { mime_type: mime, data: b64 } }] }],
-        generationConfig: { responseMimeType: 'application/json', responseSchema: SCHEMA, temperature: 0.2, maxOutputTokens: 400 },
-      }),
-      signal: AbortSignal.timeout(25000),
-    })
-    if (!r.ok) { lastErr = `${model}: ${r.status} ${(await r.text()).slice(0, 200)}`; if (r.status === 404 || r.status === 400) continue; break }
+    // Simple tagging ke liye "thinking" ki zaroorat nahi — band karo, jawab 2–4 sec me aata hai
+    const thinking = /2\.5/.test(model) ? { thinkingConfig: { thinkingBudget: 0 } } : {}
+    let r: Response
+    try {
+      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: PROMPT }, { inline_data: { mime_type: mime, data: b64 } }] }],
+          generationConfig: { responseMimeType: 'application/json', responseSchema: SCHEMA, temperature: 0.2, maxOutputTokens: 1024, ...thinking },
+        }),
+        signal: AbortSignal.timeout(18000),
+      })
+    } catch (e) { lastErr = `${model}: ${(e as Error).message}`; console.error(lastErr); continue }
+    if (!r.ok) { lastErr = `${model}: ${r.status} ${(await r.text()).slice(0, 300)}`; console.error(lastErr); if (r.status === 429) break; continue }
     const j = await r.json()
-    const text = j?.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!text) { lastErr = `${model}: empty`; continue }
-    return { ...JSON.parse(text), model }
+    const text = j?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('')
+    if (!text) { lastErr = `${model}: empty ${j?.candidates?.[0]?.finishReason ?? ''}`; console.error(lastErr); continue }
+    try { return { ...JSON.parse(text), model } } catch { lastErr = `${model}: bad json`; continue }
   }
   throw new Error(lastErr || 'gemini failed')
 }
@@ -77,28 +82,26 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return out({ error: 'method' }, 405)
 
   try {
-    const auth = req.headers.get('authorization') ?? ''
-    const url = Deno.env.get('SUPABASE_URL')!
-    // 1) User client: RLS lagta hai → patient sirf APNA check-in dekh sakta hai
-    const user = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { authorization: auth } }, auth: { persistSession: false } })
-    const { data: u } = await user.auth.getUser(auth.replace(/^Bearer\s+/i, ''))
-    if (!u?.user) return out({ error: 'auth' }, 401)
+    const jwt = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '')
+    // Admin client (server-only key). Har check hum khud explicitly karte hain: token → user → uska patient → uska check-in.
+    const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
+    const { data: u, error: ae } = await admin.auth.getUser(jwt)
+    if (ae || !u?.user) return out({ error: 'auth' }, 401)
 
     const { checkin_id } = await req.json().catch(() => ({}))
     if (typeof checkin_id !== 'string' || !/^[0-9a-f-]{36}$/.test(checkin_id)) return out({ error: 'bad id' }, 400)
 
-    const { data: c } = await user.from('checkins').select('id, patient_id, photo_path, ai_tag, log_date').eq('id', checkin_id).maybeSingle()
-    if (!c) return out({ error: 'not found' }, 404)
+    const { data: pt } = await admin.from('patients').select('id, doctor_only').eq('profile_id', u.user.id).maybeSingle()
+    if (!pt) return out({ error: 'not a patient' }, 403)
+    const { data: c } = await admin.from('checkins').select('id, patient_id, photo_path, ai_tag').eq('id', checkin_id).eq('patient_id', pt.id).maybeSingle()
+    if (!c) return out({ error: 'not found' }, 404) // dusre ka check-in → not found (leak nahi)
     if (c.ai_tag) return out({ ok: true, cached: true }) // ek photo = ek hi AI call (cost control)
-    if (!c.photo_path) return out({ error: 'no photo' }, 400)
+    if (!c.photo_path || !c.photo_path.startsWith(`${u.user.id}/`)) return out({ error: 'no photo' }, 400)
 
-    // 2) Consent: "AI मदत" band hai to AI nahi chalega
-    const { data: cons } = await user.from('current_consents').select('granted').eq('profile_id', u.user.id).eq('type', 'ai_drafts').maybeSingle()
+    // Consent: "AI मदत" band hai to AI nahi chalega
+    const { data: cons } = await admin.from('consents').select('granted').eq('profile_id', u.user.id).eq('type', 'ai_drafts').order('created_at', { ascending: false }).limit(1).maybeSingle()
     if (!cons?.granted) return out({ ok: true, skipped: 'consent' })
 
-    // 3) Admin client sirf photo padhne + AI result likhne ke liye (patient ko update ka right nahi hai)
-    const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
-    const { data: pt } = await admin.from('patients').select('doctor_only').eq('id', c.patient_id).single()
     const { data: file, error: fe } = await admin.storage.from('plates').download(c.photo_path)
     if (fe || !file) return out({ error: 'photo' }, 500)
     if (file.size > 5_000_000) return out({ error: 'too big' }, 413)

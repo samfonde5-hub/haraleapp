@@ -34,7 +34,8 @@ const resources = {
       bad_code: 'कृपया पूर्ण कोड टाका.',
       wrong_code: 'कोड चुकीचा आहे किंवा कालबाह्य झाला. पुन्हा प्रयत्न करा.',
       send_fail: 'कोड पाठवता आला नाही. थोड्या वेळाने पुन्हा प्रयत्न करा.',
-      too_many: 'खूप वेळा प्रयत्न झाले. काही मिनिटांनी पुन्हा करा.',
+      too_many: 'आत्ता ईमेल पाठवण्याची मर्यादा संपली आहे. आधी आलेला लिंक वापरा, किंवा सुमारे 1 तासाने पुन्हा प्रयत्न करा.',
+      already_sent: 'लिंक आधीच पाठवली आहे — ईमेल (Spam/Promotions सुद्धा) तपासा. नवीन लिंकची गरज नाही.',
       privacy: 'तुमची माहिती सुरक्षित आहे. फक्त तुम्ही आणि डॉक्टर ती पाहू शकतात.',
     },
     consent: {
@@ -79,7 +80,8 @@ const resources = {
       bad_code: 'Please enter the full code.',
       wrong_code: 'The code is wrong or expired. Please try again.',
       send_fail: 'Could not send the code. Please try again shortly.',
-      too_many: 'Too many attempts. Please try again in a few minutes.',
+      too_many: 'The email limit is reached for now. Use the link already sent, or try again in about 1 hour.',
+      already_sent: 'A link was already sent — check your email (also Spam/Promotions). No need for a new one.',
       privacy: 'Your information is safe. Only you and the doctor can see it.',
     },
     consent: {

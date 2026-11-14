@@ -18,6 +18,10 @@ export default function Login() {
     setErr('')
     const clean = email.trim().toLowerCase()
     if (!EMAIL_RE.test(clean)) return setErr(t('login.bad_email'))
+    // Ek hi email pe 10 min me dobara link mat bhejo — pehle wala link chalta hai, aur email quota bachta hai
+    let last = 0
+    try { last = Number(localStorage.getItem(`otp:${clean}`) || 0) } catch { /* ignore */ }
+    if (Date.now() - last < 10 * 60_000) { setEmail(clean); setStep('code'); return setErr(t('login.already_sent')) }
     setBusy(true)
     const { error } = await supabase.auth.signInWithOtp({
       email: clean,
@@ -25,6 +29,7 @@ export default function Login() {
     })
     setBusy(false)
     if (error) return setErr(error.status === 429 ? t('login.too_many') : t('login.send_fail'))
+    try { localStorage.setItem(`otp:${clean}`, String(Date.now())) } catch { /* ignore */ }
     setEmail(clean)
     setStep('code')
   }
