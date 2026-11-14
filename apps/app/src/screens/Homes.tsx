@@ -12,21 +12,6 @@ function SignOut() {
   )
 }
 
-/** Phase 1 shell. Phase 2 me yahan Today / Check-in / Progress aayenge. */
-export function PatientHome() {
-  const { t } = useTranslation()
-  const { profile } = useAuth()
-  return (
-    <Shell right={<SignOut />}>
-      <section className="mt-6 rounded-3xl bg-gradient-to-br from-emerald to-emerald-dark p-6 text-white shadow-lg">
-        <p className="text-mint">{profile?.email}</p>
-        <h1 className="mt-2 font-display text-3xl font-extrabold">{t('patient.hello')}</h1>
-        <p className="mt-2 text-lg text-white/90">{t('patient.soon')}</p>
-      </section>
-    </Shell>
-  )
-}
-
 /** Phase 1 shell. Phase 3 me yahan Today queue / Patients / Approvals aayenge. */
 export function DoctorHome() {
   const { t } = useTranslation()

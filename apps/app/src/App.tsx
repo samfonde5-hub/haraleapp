@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { AuthProvider, useAuth } from './lib/auth'
 import Login from './screens/Login'
 import Consent from './screens/Consent'
-import { DoctorHome, PatientHome } from './screens/Homes'
+import { DoctorHome } from './screens/Homes'
+import PatientApp from './patient/PatientApp'
 
 function Router() {
   const { t } = useTranslation()
@@ -19,7 +20,7 @@ function Router() {
   if (!session || !profile) return <Login />
   if (profile.role === 'doctor' || profile.role === 'staff') return <DoctorHome />
   if (!consents.health_data) return <Consent />
-  return <PatientHome />
+  return <PatientApp />
 }
 
 export default function App() {

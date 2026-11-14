@@ -1,5 +1,6 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
+import { patientMr, patientEn } from './locales/patient'
 
 export const LANGS = [
   { code: 'mr', label: 'मराठी' },
@@ -7,7 +8,7 @@ export const LANGS = [
 ] as const
 
 const resources = {
-  mr: { t: {
+  mr: { p: patientMr, t: {
     tagline: 'डॉ. हराळे यांची रोजची साथ',
     welcome: 'नमस्कार! 🙏',
     sub: 'तुमचं वजन, तुमची सवय, आणि डॉक्टरांचं रोजचं मार्गदर्शन — एकाच ॲपमध्ये.',
@@ -24,7 +25,7 @@ const resources = {
       sub: 'तुमच्या ईमेलवर लॉगिन लिंक पाठवू. पासवर्ड लक्षात ठेवायची गरज नाही.',
       email: 'तुमचा ईमेल',
       send: 'लॉगिन लिंक पाठवा',
-      sent_to: 'कोड पाठवला आहे:',
+      sent_to: 'लिंक पाठवली आहे:',
       link_hint: '📩 ईमेल उघडा आणि “Sign in” लिंकवर क्लिक करा — तुम्ही आपोआप लॉगिन व्हाल. ईमेलमध्ये कोड असल्यास तो खाली टाका.',
       code: 'ईमेलमधला कोड टाका',
       verify: 'पुढे जा',
@@ -52,7 +53,7 @@ const resources = {
     patient: { hello: 'स्वागत आहे! 🙏', soon: 'तुमचं प्रोफाइल डॉक्टर लवकरच सुरू करतील. पुढच्या टप्प्यात इथे तुमचा रोजचा प्लॅन दिसेल.' },
     doctor: { hello: 'नमस्कार डॉक्टर 🙏', soon: 'तुमचा डॅशबोर्ड तयार होत आहे. पुढच्या टप्प्यात इथे आजचे पेशंट्स दिसतील.' },
   } },
-  en: { t: {
+  en: { p: patientEn, t: {
     tagline: "Dr. Harale's daily support",
     welcome: 'Hello! 🙏',
     sub: "Your weight, your habits and the doctor's daily guidance — in one app.",
@@ -69,7 +70,7 @@ const resources = {
       sub: "We'll email you a login link. No password to remember.",
       email: 'Your email',
       send: 'Send login link',
-      sent_to: 'Code sent to:',
+      sent_to: 'Link sent to:',
       link_hint: '📩 Open the email and tap the “Sign in” link — you will be logged in automatically. If the email has a code, enter it below.',
       code: 'Enter the code from your email',
       verify: 'Continue',

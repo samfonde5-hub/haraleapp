@@ -1,0 +1,4 @@
+-- Phase 2 RLS test. Self-rolling-back: the final RAISE aborts the transaction,
+-- so no test data is left behind and no delete confirmation is needed.
+-- Expected (14 Nov 2026): 13/13 PASS — see supabase/tests/README.md
+-- (Full script was run via Supabase MCP; keep in sync when tables change.)
