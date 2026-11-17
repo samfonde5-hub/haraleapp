@@ -5,6 +5,7 @@ import { saveStory, useDoctorToday, type useDashboard } from '../lib/doctor'
 import { useAuth } from '../lib/auth'
 import AlertList from './AlertList'
 import LeadForm from './LeadForm'
+import Pipeline from './Pipeline'
 import { Av, Dc, Empty, Kpi, PageHead, fmtTime, useL, waLink } from './ui'
 
 type Dash = ReturnType<typeof useDashboard>
@@ -65,6 +66,8 @@ export default function DToday({ dash, go }: { dash: Dash; go: (h: string) => vo
 
       {d.counts.alerts > 0 && <AlertsBlock reload={dash.reload} go={go} />}
 
+      <Pipeline dash={dash} go={go} />
+
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         <Kpi i={0} label={L('New leads · this week', 'नवीन लीड्स · हा आठवडा')} value={d.kpi.leads_week}
           sub={<span className="tag t-em">{d.kpi.leads_week - d.kpi.leads_prev_week >= 0 ? '+' : ''}{d.kpi.leads_week - d.kpi.leads_prev_week} {L('vs last week', 'मागच्या आठवड्यापेक्षा')}</span>} />
@@ -76,7 +79,7 @@ export default function DToday({ dash, go }: { dash: Dash; go: (h: string) => vo
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
-        <Dc i={4} className="min-w-0">
+        <Dc i={4} className="min-w-0 scroll-mt-20"><span id="queue" />
           <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
             <div><h2 className="font-display text-[19px] font-bold">{L('Follow-up queue', 'फॉलो-अप यादी')}</h2><p className="text-[13px] text-mu">{L('Built automatically — nobody gets missed', 'सिस्टमने आपोआप बनवली — कोणी सुटणार नाही')}</p></div>
             <div className="flex gap-2">

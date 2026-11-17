@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../lib/auth'
 import { usePatientData } from '../lib/patient'
 import { flushQueue } from '../lib/offline'
+import { supabase } from '../lib/supabase'
 import { haptic, transition } from '../lib/feel'
 import { LANGS } from '../i18n'
 import { Skeleton } from '../components/Toast'
@@ -43,6 +44,18 @@ export default function PatientApp() {
     window.addEventListener('online', flush)
     return () => { window.removeEventListener('hashchange', f); window.removeEventListener('online', flush) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Intake answers → doctor ko pehla message (jaise hi patient record jud jaye). Ek hi baar.
+  useEffect(() => {
+    const pid = data.patient?.id
+    if (!pid) return
+    let body: string | null = null
+    try { if (localStorage.getItem('intake_sent') !== '1') body = localStorage.getItem('intake') } catch { /* ignore */ }
+    if (!body) return
+    supabase.from('messages').insert({ patient_id: pid, body, from_doctor: false, sender_id: uid }).then(({ error }) => {
+      if (!error) try { localStorage.setItem('intake_sent', '1') } catch { /* ignore */ }
+    })
+  }, [data.patient?.id, uid])
 
   const go = (id: string) => {
     if (id === tab) return window.scrollTo({ top: 0, behavior: 'smooth' })

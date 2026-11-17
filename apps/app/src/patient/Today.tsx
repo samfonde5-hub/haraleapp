@@ -6,6 +6,7 @@ import { daysBetween, partOfDay, todayIST } from '../lib/dates'
 import { haptic } from '../lib/feel'
 import type { usePatientData } from '../lib/patient'
 import Safety from './Safety'
+import { JourneyCard, NextStep, WhatNext } from './Journey'
 import morning from '../assets/banners/today-morning.webp'
 import lunch from '../assets/banners/today-lunch.webp'
 import evening from '../assets/banners/today-evening.webp'
@@ -43,11 +44,9 @@ export default function Today({ data, go, name }: { data: Data; go: (tab: string
         </p>
       </PhotoBanner>
 
-      {!patient && (
-        <Card i={1} className="border-2 border-gold/50">
-          <p className="text-lg text-ink/80">{t('pending.body')}</p>
-        </Card>
-      )}
+      {!patient && <WhatNext />}
+      {patient && <NextStep data={data} go={go} />}
+      {patient && day && <JourneyCard week={Math.ceil(day / 7)} focus={plan?.focus_goal} />}
 
       <Card i={1}>
         <div className="flex items-center gap-4">
@@ -76,7 +75,7 @@ export default function Today({ data, go, name }: { data: Data; go: (tab: string
 
       {patient && (
         <Card i={2}>
-          <div className="flex items-center justify-between">
+          <div id="tasks" className="flex scroll-mt-20 items-center justify-between">
             <h2 className="font-display text-xl font-bold">{t('tasks.title')}</h2>
             <span className="font-latin text-sm font-semibold text-emerald">{doneCount}/5</span>
           </div>

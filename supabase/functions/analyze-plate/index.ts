@@ -43,7 +43,25 @@ const SCHEMA = {
   required: ['items', 'tag', 'confidence', 'tip_mr', 'tip_en', 'portions'],
 }
 
+// Mentor note: OPENAI_API_KEY secret daalte hi ChatGPT use hoga; nahi hai to free Gemini. Code badalna nahi padta.
+async function openai(prompt: string, img?: { b64: string; mime: string }) {
+  const key = Deno.env.get('OPENAI_API_KEY')!
+  const model = Deno.env.get('OPENAI_MODEL') || 'gpt-4.1-mini'
+  const content: unknown[] = [{ type: 'text', text: prompt + '\nReturn ONLY one JSON object that follows this schema exactly: ' + JSON.stringify(SCHEMA) }]
+  if (img) content.push({ type: 'image_url', image_url: { url: `data:${img.mime};base64,${img.b64}`, detail: 'low' } })
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
+    body: JSON.stringify({ model, messages: [{ role: 'user', content }], response_format: { type: 'json_object' }, temperature: 0.3 }),
+    signal: AbortSignal.timeout(25000),
+  })
+  if (!r.ok) throw new Error(`openai ${r.status} ${(await r.text()).slice(0, 200)}`)
+  const j = await r.json()
+  return { ...JSON.parse(j.choices?.[0]?.message?.content ?? '{}'), model }
+}
+
 async function gemini(b64: string, mime: string) {
+  if (Deno.env.get('OPENAI_API_KEY')) return openai(PROMPT, { b64, mime })
   const key = Deno.env.get('GEMINI_API_KEY')
   if (!key) throw new Error('GEMINI_API_KEY missing')
   let lastErr = ''
