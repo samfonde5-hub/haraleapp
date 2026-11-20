@@ -1,3 +1,6 @@
-knee.png|https://www.figma.com/api/mcp/asset/923a4dda-5eac-421e-9662-549e93f9052b.png
-exercise.png|https://www.figma.com/api/mcp/asset/faae0e76-d4e9-4fd8-b82f-c2552ae9fcda.png
-thali.png|https://www.figma.com/api/mcp/asset/32767399-5fac-44fc-8836-e1e8c6497352.png
+B1.png|https://www.figma.com/api/mcp/asset/684e4c26-b619-4cc2-837d-d86fc61728d2.png
+B2.png|https://www.figma.com/api/mcp/asset/653ac339-c160-4ab5-878a-ddb77fd5b00b.png
+B3.png|https://www.figma.com/api/mcp/asset/c22ca25c-6539-4330-a43c-c5d898aa896c.png
+B6.png|https://www.figma.com/api/mcp/asset/e6c2a10f-6dae-4999-b202-5007b9549d28.png
+B7.png|https://www.figma.com/api/mcp/asset/9f39356e-2855-417f-bd04-2af82b0fd0aa.png
+B10.png|https://www.figma.com/api/mcp/asset/9432bf26-36c2-4e57-a3b4-ca688cdc4736.png
