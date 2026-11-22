@@ -1,0 +1,23 @@
+name: yt
+on:
+  push:
+    branches: [tx-02c866cf]
+    paths: [media/yt.txt]
+permissions:
+  contents: write
+jobs:
+  dl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -q yt-dlp
+      - run: |
+          mkdir -p media/out
+          yt-dlp -f "b[height<=720][ext=mp4]/b" -o "media/out/ref.%(ext)s" --write-auto-subs --sub-langs "all" "$(cat media/yt.txt)" 2>&1 | tail -20 || true
+          ls -la media/out | tail
+      - run: |
+          git config user.name "media-bot"; git config user.email "media-bot@users.noreply.github.com"
+          git pull -q --rebase origin tx-02c866cf || true
+          git add media/out/ref* || true
+          git commit -m "ref video" || echo nothing
+          git push || true
