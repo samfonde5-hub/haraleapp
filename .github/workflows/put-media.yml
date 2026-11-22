@@ -1,0 +1,27 @@
+name: put-media
+on:
+  push:
+    branches: [tx-02c866cf]
+    paths: [media/put.txt]
+permissions:
+  contents: write
+jobs:
+  put:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PUT files
+        run: |
+          : > media/put.log
+          while IFS='|' read -r name type url; do
+            [ -z "$name" ] && continue
+            code=$(curl -s -o /dev/null -w "%{http_code}" -L -X PUT "$url" -H "Content-Type: $type" --data-binary @"apps/app/public/cw/$name")
+            echo "$name $code" | tee -a media/put.log
+          done < media/put.txt
+      - name: Commit
+        run: |
+          git config user.name "media-bot"
+          git config user.email "media-bot@users.noreply.github.com"
+          git add media/put.log
+          git commit -m "put log" || echo "nothing"
+          git push
