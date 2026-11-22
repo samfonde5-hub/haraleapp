@@ -1,3 +1,8 @@
-mr_liver.png|https://www.figma.com/api/mcp/asset/1f77cb02-7a6d-4a57-8300-b80684f18583.png
-mr_sleep.png|https://www.figma.com/api/mcp/asset/252fffc0-91b6-456c-afa7-b786369fb6a6.png
-mr_walk.png|https://www.figma.com/api/mcp/asset/669c6078-ceca-4e0c-855f-939bb66c2ca3.png
+bf1.png|https://www.figma.com/api/mcp/asset/c58a6019-12e6-4367-a70e-f3a39d2e447a.png
+bf2.png|https://www.figma.com/api/mcp/asset/e2eaae4b-fd52-49de-97c6-84d4d46e0c25.png
+bf3.png|https://www.figma.com/api/mcp/asset/32ef2dfb-aa34-4b0f-814a-96cd0c056e0a.png
+bf4.png|https://www.figma.com/api/mcp/asset/67b3b2fe-d849-4c33-af05-49e02b8abb69.png
+bf5.png|https://www.figma.com/api/mcp/asset/37044e29-0b62-421f-aacb-f04641ad70ad.png
+bf6.png|https://www.figma.com/api/mcp/asset/7113c778-4eb3-48f4-b07b-dcff755219f9.png
+bf7.png|https://www.figma.com/api/mcp/asset/7ca41695-02d4-4279-a505-642878b5bdb9.png
+bf8.png|https://www.figma.com/api/mcp/asset/db5b63b6-3aa7-41de-9412-bec84d0502ff.png
