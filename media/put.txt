@@ -1,8 +1,2 @@
-h0.png|image/png|https://at.adobe.com/C74xrV4bkkkdAy5k
 h1.png|image/png|https://at.adobe.com/0VhBKWIch86WZ5cF
-h2.png|image/png|https://at.adobe.com/g3aKKmCCVVoeQO4U
-h3.png|image/png|https://at.adobe.com/yPFoOPMdVcTefI3o
-h4.png|image/png|https://at.adobe.com/pBlET3pEsMxDJGxS
 h5.png|image/png|https://at.adobe.com/zSfCUonOvNxcim3v
-h6.png|image/png|https://at.adobe.com/5FzHMZIqZ6DSMI03
-logo_full.png|image/png|https://at.adobe.com/OxHfkyz1IjuBNzA7
