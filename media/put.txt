@@ -1,1 +1,7 @@
-cl6.mp3|audio/mpeg|https://at.adobe.com/2NGDMBt02sXcP7YC
+vt1.jpg|image/jpeg|https://at.adobe.com/AQXR6g0Cm2ZpnL5W
+vt2.jpg|image/jpeg|https://at.adobe.com/c3Dv2kfsxQDQtkFU
+vt3.jpg|image/jpeg|https://at.adobe.com/2OZhjkY676nXXm5R
+vt4.jpg|image/jpeg|https://at.adobe.com/D0yJclWQUAroZEM9
+vt5.jpg|image/jpeg|https://at.adobe.com/GkyAj4dlQedLTAZo
+dr.png|image/png|https://at.adobe.com/4vIAO10TrWLqoflw
+logo_full.png|image/png|https://at.adobe.com/q9DuqOUmgci9OHil
