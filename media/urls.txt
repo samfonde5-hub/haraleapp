@@ -1,5 +1,7 @@
-vt1.png|https://www.figma.com/api/mcp/asset/dd521192-e514-4eb5-b501-1b18bee178ed.png
-vt2.png|https://www.figma.com/api/mcp/asset/cebc70f7-4ff8-41e1-b884-3e54f30e7bef.png
-vt3.png|https://www.figma.com/api/mcp/asset/637c003e-1b4f-4062-b451-2b4f54d434c5.png
-vt4.png|https://www.figma.com/api/mcp/asset/a3e6521f-4012-426a-ba64-b0358749290c.png
-vt5.png|https://www.figma.com/api/mcp/asset/220d5237-4ef1-4c3c-bb2b-41e9c11fba4a.png
+wb0.png|https://www.figma.com/api/mcp/asset/9ab402c8-4fe6-403d-91b8-00bb008c9ad1.png
+wb1.png|https://www.figma.com/api/mcp/asset/a4534276-9545-40e1-b07b-c746cfc34c2d.png
+wb2.png|https://www.figma.com/api/mcp/asset/f8dcb57c-8e12-4cea-af3c-8a1d45f6de13.png
+wb3.png|https://www.figma.com/api/mcp/asset/06b200eb-7cde-44d8-b97f-04d119b8d136.png
+wb4.png|https://www.figma.com/api/mcp/asset/a4aff200-5aea-41cc-9315-b2f090ae7fd1.png
+wb5.png|https://www.figma.com/api/mcp/asset/facac209-3f0c-498a-a7ef-d686d1faefd9.png
+wb6.png|https://www.figma.com/api/mcp/asset/d4b3fb57-5846-46c4-a448-1510ba09d327.png
