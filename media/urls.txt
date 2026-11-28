@@ -1,5 +1,2 @@
-G1.png|https://www.figma.com/api/mcp/asset/6d724546-a5d7-4e23-94f0-57c1e049a8e6.png
-G2.png|https://www.figma.com/api/mcp/asset/3f989504-4280-4d40-a790-58b69b54dca1.png
-G3.png|https://www.figma.com/api/mcp/asset/b4bc57ec-3667-4c5a-9de2-1cabbeed4b0f.png
-G4.png|https://www.figma.com/api/mcp/asset/65cded94-d0dc-4162-b6fe-4dd18303e3ae.png
-G5.png|https://www.figma.com/api/mcp/asset/613ed2cc-ced0-461b-8a04-72218c5f74c3.png
+AV.png|https://www.figma.com/api/mcp/asset/67c84daf-7c14-4571-8bce-19a8ff7a2266.png
+FD.png|https://www.figma.com/api/mcp/asset/710c56ce-50c8-42b7-add0-d4b742c24316.png
